@@ -185,10 +185,15 @@ Please provide your analysis and recommendations in a clear format with:
                     matching = [m for m in available_model_names if pattern in m.lower()]
                     models_to_try.extend(matching[:2])  # Add up to 2 matches per pattern
             
-            # Add fallback models (without 'models/' prefix first)
+            # Add fallback models - use newer models that are more likely to work
             fallback_models = [
-                'gemini-1.5-flash',
-                'gemini-1.5-pro', 
+                'models/gemini-2.0-flash',      # Newer model
+                'models/gemini-2.5-pro',        # Newer model
+                'models/gemini-flash-latest',   # Latest flash
+                'models/gemini-pro-latest',     # Latest pro
+                'models/gemini-2.0-flash-001',  # Specific version
+                'gemini-1.5-flash',             # Old models as last resort
+                'gemini-1.5-pro',
                 'gemini-pro',
             ]
             models_to_try.extend([m for m in fallback_models if m not in models_to_try])

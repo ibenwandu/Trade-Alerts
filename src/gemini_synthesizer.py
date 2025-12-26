@@ -89,9 +89,14 @@ Based on your review of all recommendations:
 Format your recommendations clearly with specific price levels that can be used for automated monitoring and alerts. Ensure all price levels are exact and actionable.
 """
             
-            # Try models in order of preference with different formats
+            # Try models in order of preference - use newer models that work
             models_to_try = [
-                'gemini-1.5-flash',
+                'models/gemini-2.0-flash',      # Newer model (available in diagnostic)
+                'models/gemini-2.5-pro',        # Newer model (available in diagnostic)
+                'models/gemini-flash-latest',   # Latest flash (available in diagnostic)
+                'models/gemini-pro-latest',     # Latest pro (available in diagnostic)
+                'models/gemini-2.0-flash-001',  # Specific version (available in diagnostic)
+                'gemini-1.5-flash',             # Old models as last resort
                 'models/gemini-1.5-flash',
                 'gemini-1.5-pro',
                 'models/gemini-1.5-pro',
