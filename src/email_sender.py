@@ -79,13 +79,29 @@ class EmailSender:
         body += f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
         body += "=" * 80 + "\n\n"
         
+        # Track which LLMs provided recommendations
+        available_llms = []
+        missing_llms = []
+        
         # Add individual LLM recommendations (ChatGPT, Gemini, Claude)
         for name, recommendation in llm_recommendations.items():
             if recommendation:
+                available_llms.append(name)
                 body += f"\n{'=' * 80}\n"
                 body += f"{name.upper()} RECOMMENDATIONS\n"
                 body += f"{'=' * 80}\n\n"
                 body += recommendation + "\n\n"
+            else:
+                missing_llms.append(name)
+        
+        # Add note about missing recommendations
+        if missing_llms:
+            body += f"\n{'=' * 80}\n"
+            body += "NOTE: MISSING RECOMMENDATIONS\n"
+            body += f"{'=' * 80}\n\n"
+            body += f"The following LLMs did not provide recommendations: {', '.join(m.upper() for m in missing_llms)}\n"
+            body += "This may be due to API errors, rate limits, or model unavailability.\n"
+            body += "Please check the logs for more details.\n\n"
         
         # Add Gemini final synthesis
         if gemini_final:
@@ -93,6 +109,14 @@ class EmailSender:
             body += "GEMINI FINAL RECOMMENDATION\n"
             body += f"{'=' * 80}\n\n"
             body += gemini_final + "\n\n"
+        else:
+            body += f"\n{'=' * 80}\n"
+            body += "NOTE: FINAL SYNTHESIS\n"
+            body += f"{'=' * 80}\n\n"
+            body += "Gemini final synthesis was not available.\n"
+            if available_llms:
+                body += f"Using recommendations from: {', '.join(a.upper() for a in available_llms)}\n"
+            body += "\n"
         
         body += "=" * 80 + "\n"
         body += "End of Recommendations\n"

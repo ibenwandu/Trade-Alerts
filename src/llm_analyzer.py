@@ -225,12 +225,25 @@ Please provide your analysis and recommendations in a clear format with:
         logger.info("Starting LLM analysis...")
         
         # Run analyses (ChatGPT, Gemini, Claude)
+        logger.info("Running ChatGPT analysis...")
         results['chatgpt'] = self.analyze_with_chatgpt(data_summary)
+        
+        logger.info("Running Gemini analysis...")
         results['gemini'] = self.analyze_with_gemini(data_summary)
+        
+        logger.info("Running Claude analysis...")
         results['claude'] = self.analyze_with_claude(data_summary)
         
+        # Log results
         enabled_count = sum(1 for v in results.values() if v is not None)
         logger.info(f"Completed {enabled_count}/3 LLM analyses")
+        
+        # Log which ones succeeded/failed
+        for name, result in results.items():
+            if result:
+                logger.info(f"✅ {name.upper()} analysis completed successfully")
+            else:
+                logger.warning(f"❌ {name.upper()} analysis failed or returned no result")
         
         return results
 
