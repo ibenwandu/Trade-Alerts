@@ -29,6 +29,32 @@ class RecommendationParser:
         Returns:
             List of trading opportunity dictionaries
         """
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            # Try JSON first
+            try:
+                import json
+                data = json.loads(content)
+                return self._parse_json(data)
+            except (json.JSONDecodeError, ValueError):
+                # Fallback to text parsing
+                return self._parse_text(content)
+        except Exception as e:
+            logger.error(f"Error parsing file {file_path}: {e}")
+            return []
+    
+    def parse_text(self, text: str) -> List[Dict]:
+        """
+        Parse text to extract trading opportunities (public method)
+        
+        Args:
+            text: Text content to parse
+            
+        Returns:
+            List of trading opportunity dictionaries
+        """
         return self._parse_text(text)
     
     def _parse_json(self, data: Dict) -> List[Dict]:
