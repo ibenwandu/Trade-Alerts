@@ -32,7 +32,7 @@ services:
       - key: PUSHOVER_USER_KEY
         sync: false
       - key: GEMINI_MODEL
-        value: gemini-1.5-pro
+        value: gemini-1.5-flash
       - key: CHECK_INTERVAL
         value: "60"
       - key: ENTRY_TOLERANCE_PIPS
@@ -48,5 +48,5 @@ services:
       - key: OPENAI_MODEL
         value: gpt-4o-mini
       - key: ANTHROPIC_MODEL
-        value: claude-3-5-sonnet-20241022
+        value: claude-3-5-sonnet-20240620
 

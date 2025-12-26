@@ -51,7 +51,7 @@ class LLMAnalyzer:
         
         # Claude
         self.claude_api_key = os.getenv('ANTHROPIC_API_KEY')
-        self.claude_model = os.getenv('ANTHROPIC_MODEL', 'claude-3-5-sonnet-20241022')
+        self.claude_model = os.getenv('ANTHROPIC_MODEL', 'claude-3-5-sonnet-20240620')
         self.claude_enabled = ANTHROPIC_AVAILABLE and bool(self.claude_api_key)
         if self.claude_enabled:
             self.claude_client = Anthropic(api_key=self.claude_api_key)
@@ -152,8 +152,20 @@ Please provide your analysis and recommendations in a clear format with:
             return None
         
         try:
-            gemini_model = os.getenv('GEMINI_MODEL', 'gemini-1.5-pro')
-            model = genai.GenerativeModel(gemini_model)
+            gemini_model = os.getenv('GEMINI_MODEL', 'gemini-1.5-flash')
+            # Try primary model first
+            try:
+                model = genai.GenerativeModel(gemini_model)
+            except Exception as model_error:
+                logger.warning(f"Model {gemini_model} failed, trying gemini-1.5-pro: {model_error}")
+                try:
+                    model = genai.GenerativeModel('gemini-1.5-pro')
+                    gemini_model = 'gemini-1.5-pro'
+                except Exception:
+                    logger.warning("gemini-1.5-pro failed, trying gemini-pro")
+                    model = genai.GenerativeModel('gemini-pro')
+                    gemini_model = 'gemini-pro'
+            
             prompt = self._get_gemini_prompt(data_summary)
             response = model.generate_content(prompt)
             result = response.text
@@ -195,14 +207,40 @@ Please provide your analysis and recommendations in a clear format with:
         
         try:
             prompt = self._get_claude_prompt(data_summary)
-            message = self.claude_client.messages.create(
-                model=self.claude_model,
-                max_tokens=4000,
-                messages=[{
-                    "role": "user",
-                    "content": prompt
-                }]
-            )
+            # Try primary model first, with fallback
+            try:
+                message = self.claude_client.messages.create(
+                    model=self.claude_model,
+                    max_tokens=4000,
+                    messages=[{
+                        "role": "user",
+                        "content": prompt
+                    }]
+                )
+            except Exception as model_error:
+                # Try alternative Claude model
+                logger.warning(f"Model {self.claude_model} failed, trying claude-3-5-sonnet-20240620: {model_error}")
+                try:
+                    message = self.claude_client.messages.create(
+                        model='claude-3-5-sonnet-20240620',
+                        max_tokens=4000,
+                        messages=[{
+                            "role": "user",
+                            "content": prompt
+                        }]
+                    )
+                except Exception:
+                    # Try claude-3-sonnet-20240229 as last resort
+                    logger.warning("Trying claude-3-sonnet-20240229")
+                    message = self.claude_client.messages.create(
+                        model='claude-3-sonnet-20240229',
+                        max_tokens=4000,
+                        messages=[{
+                            "role": "user",
+                            "content": prompt
+                        }]
+                    )
+            
             result = message.content[0].text
             logger.info("✅ Claude analysis completed")
             return result

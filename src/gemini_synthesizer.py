@@ -81,8 +81,20 @@ Based on your review of all recommendations:
 Format your recommendations clearly with specific price levels that can be used for automated monitoring and alerts. Ensure all price levels are exact and actionable.
 """
             
-            gemini_model = os.getenv('GEMINI_MODEL', 'gemini-1.5-pro')
-            model = genai.GenerativeModel(gemini_model)
+            gemini_model = os.getenv('GEMINI_MODEL', 'gemini-1.5-flash')
+            # Try primary model first, with fallbacks
+            try:
+                model = genai.GenerativeModel(gemini_model)
+            except Exception as model_error:
+                logger.warning(f"Model {gemini_model} failed, trying gemini-1.5-pro: {model_error}")
+                try:
+                    model = genai.GenerativeModel('gemini-1.5-pro')
+                    gemini_model = 'gemini-1.5-pro'
+                except Exception:
+                    logger.warning("gemini-1.5-pro failed, trying gemini-pro")
+                    model = genai.GenerativeModel('gemini-pro')
+                    gemini_model = 'gemini-pro'
+            
             response = model.generate_content(prompt)
             result = response.text
             logger.info(f"✅ Gemini synthesis completed (model: {gemini_model})")
