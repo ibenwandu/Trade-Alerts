@@ -152,19 +152,44 @@ Please provide your analysis and recommendations in a clear format with:
             return None
         
         try:
+            # First, try to list available models to find what works
             gemini_model = os.getenv('GEMINI_MODEL', 'gemini-1.5-flash')
-            # Try primary model first
+            
+            # Try to get available models
             try:
-                model = genai.GenerativeModel(gemini_model)
-            except Exception as model_error:
-                logger.warning(f"Model {gemini_model} failed, trying gemini-1.5-pro: {model_error}")
+                available_models = genai.list_models()
+                model_names = [m.name for m in available_models if 'generateContent' in m.supported_generation_methods]
+                logger.info(f"Available Gemini models: {model_names[:5]}...")  # Log first 5
+            except Exception:
+                pass  # If listing fails, continue with direct attempts
+            
+            # Try models in order of preference
+            models_to_try = [
+                'gemini-1.5-flash',
+                'models/gemini-1.5-flash',
+                'gemini-1.5-pro',
+                'models/gemini-1.5-pro',
+                'gemini-pro',
+                'models/gemini-pro',
+            ]
+            
+            model = None
+            working_model = None
+            
+            for model_name in models_to_try:
                 try:
-                    model = genai.GenerativeModel('gemini-1.5-pro')
-                    gemini_model = 'gemini-1.5-pro'
-                except Exception:
-                    logger.warning("gemini-1.5-pro failed, trying gemini-pro")
-                    model = genai.GenerativeModel('gemini-pro')
-                    gemini_model = 'gemini-pro'
+                    model = genai.GenerativeModel(model_name)
+                    # Test with a tiny prompt to verify it works
+                    test_response = model.generate_content("Hi", generation_config={'max_output_tokens': 1})
+                    working_model = model_name
+                    logger.info(f"✅ Found working Gemini model: {model_name}")
+                    break
+                except Exception as model_error:
+                    logger.debug(f"Model {model_name} failed: {str(model_error)[:100]}")
+                    continue
+            
+            if not model:
+                raise Exception("No working Gemini model found after trying all options")
             
             prompt = self._get_gemini_prompt(data_summary)
             response = model.generate_content(prompt)
