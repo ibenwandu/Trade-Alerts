@@ -1,0 +1,50 @@
+services:
+  - type: worker
+    name: trade-alerts
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      - key: GOOGLE_DRIVE_FOLDER_ID
+        sync: false
+      - key: GOOGLE_DRIVE_CREDENTIALS_JSON
+        sync: false
+      - key: GOOGLE_DRIVE_REFRESH_TOKEN
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: SENDER_EMAIL
+        sync: false
+      - key: SENDER_PASSWORD
+        sync: false
+      - key: RECIPIENT_EMAIL
+        sync: false
+      - key: SMTP_SERVER
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: PUSHOVER_API_TOKEN
+        sync: false
+      - key: PUSHOVER_USER_KEY
+        sync: false
+      - key: PRICE_API_URL
+        value: https://api.exchangerate-api.com/v4/latest/USD
+      - key: CHECK_INTERVAL
+        value: "60"
+      - key: ENTRY_TOLERANCE_PIPS
+        value: "10"
+      - key: ENTRY_TOLERANCE_PERCENT
+        value: "0.1"
+      - key: ANALYSIS_REFRESH_INTERVAL
+        value: "15"
+      - key: ANALYSIS_TIMES
+        value: "07:00,09:00,12:00,16:00"
+      - key: OPENAI_MODEL
+        value: gpt-4
+      - key: ANTHROPIC_MODEL
+        value: claude-3-5-sonnet-20241022
+
