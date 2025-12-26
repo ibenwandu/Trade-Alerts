@@ -15,8 +15,8 @@ class AnalysisScheduler:
     
     def __init__(self):
         """Initialize scheduler"""
-        # Default times: 7am, 9am, 12pm, 4pm EST
-        default_times = "07:00,09:00,12:00,16:00"
+        # Default times: 2am, 4am, 7am, 9am, 11am, 12pm, 4pm EST
+        default_times = "02:00,04:00,07:00,09:00,11:00,12:00,16:00"
         times_str = os.getenv('ANALYSIS_TIMES', default_times)
         
         # Get timezone (default to EST/EDT)

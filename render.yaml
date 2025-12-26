@@ -42,7 +42,7 @@ services:
       - key: ANALYSIS_REFRESH_INTERVAL
         value: "15"
       - key: ANALYSIS_TIMES
-        value: "07:00,09:00,12:00,16:00"
+        value: "02:00,04:00,07:00,09:00,11:00,12:00,16:00"
       - key: ANALYSIS_TIMEZONE
         value: "America/New_York"
       - key: OPENAI_MODEL
