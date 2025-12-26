@@ -279,11 +279,11 @@ Please provide your analysis and recommendations in a clear format with:
                     }]
                 )
             except Exception as model_error:
-                # Try alternative Claude model
-                logger.warning(f"Model {self.claude_model} failed, trying claude-3-5-sonnet-20241022: {model_error}")
+                # Try alternative Claude models - use working model from diagnostic
+                logger.warning(f"Model {self.claude_model} failed, trying claude-3-5-haiku-20241822: {model_error}")
                 try:
                     message = self.claude_client.messages.create(
-                        model='claude-3-5-sonnet-20241022',
+                        model='claude-3-5-haiku-20241822',  # This one WORKS from diagnostic!
                         max_tokens=4000,
                         messages=[{
                             "role": "user",
@@ -291,16 +291,28 @@ Please provide your analysis and recommendations in a clear format with:
                         }]
                     )
                 except Exception:
-                    # Try claude-3-sonnet-20240229 as last resort
-                    logger.warning("Trying claude-3-sonnet-20240229")
-                    message = self.claude_client.messages.create(
-                        model='claude-3-sonnet-20240229',
-                        max_tokens=4000,
-                        messages=[{
-                            "role": "user",
-                            "content": prompt
-                        }]
-                    )
+                    # Try claude-3-5-sonnet-20241022 (corrected date)
+                    logger.warning("Trying claude-3-5-sonnet-20241022")
+                    try:
+                        message = self.claude_client.messages.create(
+                            model='claude-3-5-sonnet-20241022',
+                            max_tokens=4000,
+                            messages=[{
+                                "role": "user",
+                                "content": prompt
+                            }]
+                        )
+                    except Exception:
+                        # Last resort: claude-3-sonnet-20240229
+                        logger.warning("Trying claude-3-sonnet-20240229")
+                        message = self.claude_client.messages.create(
+                            model='claude-3-sonnet-20240229',
+                            max_tokens=4000,
+                            messages=[{
+                                "role": "user",
+                                "content": prompt
+                            }]
+                        )
             
             result = message.content[0].text
             logger.info("✅ Claude analysis completed")
