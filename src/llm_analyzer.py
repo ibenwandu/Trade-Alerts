@@ -163,29 +163,48 @@ Please provide your analysis and recommendations in a clear format with:
             # First, try to list available models to find what works
             gemini_model = os.getenv('GEMINI_MODEL', 'gemini-1.5-flash')
             
-            # Try to get available models
+            # Get available models and use them
+            available_model_names = []
             try:
                 available_models = genai.list_models()
-                model_names = [m.name for m in available_models if 'generateContent' in m.supported_generation_methods]
-                logger.info(f"Available Gemini models: {model_names[:5]}...")  # Log first 5
-            except Exception:
-                pass  # If listing fails, continue with direct attempts
+                available_model_names = [m.name for m in available_models if 'generateContent' in m.supported_generation_methods]
+                logger.info(f"Available Gemini models: {len(available_model_names)} found")
+                if available_model_names:
+                    logger.info(f"First 5: {available_model_names[:5]}")
+            except Exception as e:
+                logger.warning(f"Could not list models: {e}")
             
-            # Try models in order of preference
-            models_to_try = [
+            # Try available models first, then fallback to common names
+            models_to_try = []
+            
+            # Add available models first (they're most likely to work)
+            if available_model_names:
+                # Filter to common model names
+                preferred_patterns = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro', 'gemini-2']
+                for pattern in preferred_patterns:
+                    matching = [m for m in available_model_names if pattern in m.lower()]
+                    models_to_try.extend(matching[:2])  # Add up to 2 matches per pattern
+            
+            # Add fallback models (without 'models/' prefix first)
+            fallback_models = [
                 'gemini-1.5-flash',
-                'models/gemini-1.5-flash',
-                'gemini-1.5-pro',
-                'models/gemini-1.5-pro',
+                'gemini-1.5-pro', 
                 'gemini-pro',
-                'models/gemini-pro',
             ]
+            models_to_try.extend([m for m in fallback_models if m not in models_to_try])
+            
+            # Remove duplicates while preserving order
+            seen = set()
+            models_to_try = [m for m in models_to_try if not (m in seen or seen.add(m))]
+            
+            logger.info(f"Trying {len(models_to_try)} Gemini models...")
             
             model = None
             working_model = None
             
             for model_name in models_to_try:
                 try:
+                    logger.debug(f"Trying Gemini model: {model_name}")
                     model = genai.GenerativeModel(model_name)
                     # Test with a tiny prompt to verify it works
                     test_response = model.generate_content("Hi", generation_config={'max_output_tokens': 1})
@@ -193,11 +212,15 @@ Please provide your analysis and recommendations in a clear format with:
                     logger.info(f"✅ Found working Gemini model: {model_name}")
                     break
                 except Exception as model_error:
-                    logger.debug(f"Model {model_name} failed: {str(model_error)[:100]}")
+                    error_msg = str(model_error)[:150]
+                    logger.debug(f"Model {model_name} failed: {error_msg}")
                     continue
             
             if not model:
-                raise Exception("No working Gemini model found after trying all options")
+                error_msg = f"No working Gemini model found. Tried {len(models_to_try)} models."
+                if available_model_names:
+                    error_msg += f" Available models: {available_model_names[:10]}"
+                raise Exception(error_msg)
             
             prompt = self._get_gemini_prompt(data_summary)
             response = model.generate_content(prompt)
