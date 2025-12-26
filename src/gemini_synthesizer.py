@@ -8,11 +8,19 @@ from src.logger import setup_logger
 load_dotenv()
 logger = setup_logger()
 
+# Gemini - Try new package first, fallback to old
 try:
-    import google.generativeai as genai
-    GEMINI_AVAILABLE = True
+    try:
+        import google.genai as genai
+        GEMINI_AVAILABLE = True
+        GEMINI_NEW_API = True
+    except ImportError:
+        import google.generativeai as genai
+        GEMINI_AVAILABLE = True
+        GEMINI_NEW_API = False
 except ImportError:
     GEMINI_AVAILABLE = False
+    GEMINI_NEW_API = False
 
 class GeminiSynthesizer:
     """Synthesize recommendations from multiple LLMs using Gemini"""

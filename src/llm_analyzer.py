@@ -8,12 +8,19 @@ from src.logger import setup_logger
 load_dotenv()
 logger = setup_logger()
 
-# Gemini
+# Gemini - Try new package first, fallback to old
 try:
-    import google.generativeai as genai
-    GEMINI_AVAILABLE = True
+    try:
+        import google.genai as genai
+        GEMINI_AVAILABLE = True
+        GEMINI_NEW_API = True
+    except ImportError:
+        import google.generativeai as genai
+        GEMINI_AVAILABLE = True
+        GEMINI_NEW_API = False
 except ImportError:
     GEMINI_AVAILABLE = False
+    GEMINI_NEW_API = False
 
 # Claude
 try:
@@ -51,7 +58,7 @@ class LLMAnalyzer:
         
         # Claude
         self.claude_api_key = os.getenv('ANTHROPIC_API_KEY')
-        self.claude_model = os.getenv('ANTHROPIC_MODEL', 'claude-3-5-sonnet-20240620')
+        self.claude_model = os.getenv('ANTHROPIC_MODEL', 'claude-3-5-sonnet-20241022')
         self.claude_enabled = ANTHROPIC_AVAILABLE and bool(self.claude_api_key)
         if self.claude_enabled:
             self.claude_client = Anthropic(api_key=self.claude_api_key)
@@ -244,10 +251,10 @@ Please provide your analysis and recommendations in a clear format with:
                 )
             except Exception as model_error:
                 # Try alternative Claude model
-                logger.warning(f"Model {self.claude_model} failed, trying claude-3-5-sonnet-20240620: {model_error}")
+                logger.warning(f"Model {self.claude_model} failed, trying claude-3-5-sonnet-20241022: {model_error}")
                 try:
                     message = self.claude_client.messages.create(
-                        model='claude-3-5-sonnet-20240620',
+                        model='claude-3-5-sonnet-20241022',
                         max_tokens=4000,
                         messages=[{
                             "role": "user",

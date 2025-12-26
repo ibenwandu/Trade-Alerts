@@ -48,5 +48,5 @@ services:
       - key: OPENAI_MODEL
         value: gpt-4o-mini
       - key: ANTHROPIC_MODEL
-        value: claude-3-5-sonnet-20240620
+        value: claude-3-5-sonnet-20241022
 
