@@ -89,20 +89,41 @@ Based on your review of all recommendations:
 Format your recommendations clearly with specific price levels that can be used for automated monitoring and alerts. Ensure all price levels are exact and actionable.
 """
             
-            # Try models in order of preference - use newer models that work
-            models_to_try = [
-                'models/gemini-2.0-flash',      # Newer model (available in diagnostic)
-                'models/gemini-2.5-pro',        # Newer model (available in diagnostic)
-                'models/gemini-flash-latest',   # Latest flash (available in diagnostic)
-                'models/gemini-pro-latest',     # Latest pro (available in diagnostic)
-                'models/gemini-2.0-flash-001',  # Specific version (available in diagnostic)
-                'gemini-1.5-flash',             # Old models as last resort
-                'models/gemini-1.5-flash',
-                'gemini-1.5-pro',
-                'models/gemini-1.5-pro',
-                'gemini-pro',
-                'models/gemini-pro',
-            ]
+            # Try to get available models first, then use them
+            models_to_try = []
+            
+            try:
+                available_models = genai.list_models()
+                available_model_names = [m.name for m in available_models if 'generateContent' in m.supported_generation_methods]
+                
+                if available_model_names:
+                    # Prefer newer models (2.5, 2.0) and latest versions
+                    preferred_patterns = [
+                        'gemini-2.5-pro',
+                        'gemini-2.0-flash',
+                        'gemini-flash-latest',
+                        'gemini-pro-latest',
+                        'gemini-2.0-flash-001',
+                        'gemini-1.5-pro',
+                        'gemini-1.5-flash',
+                    ]
+                    
+                    for pattern in preferred_patterns:
+                        matching = [m for m in available_model_names if pattern.lower() in m.lower()]
+                        if matching:
+                            models_to_try.append(matching[0])
+                            break
+                    
+                    # If no preferred found, use first available
+                    if not models_to_try:
+                        models_to_try = available_model_names[:3]
+            except Exception:
+                # Fallback if listing fails
+                models_to_try = [
+                    'models/gemini-2.0-flash',
+                    'models/gemini-2.5-pro',
+                    'models/gemini-flash-latest',
+                ]
             
             model = None
             working_model = None

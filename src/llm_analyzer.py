@@ -174,35 +174,40 @@ Please provide your analysis and recommendations in a clear format with:
             except Exception as e:
                 logger.warning(f"Could not list models: {e}")
             
-            # Try available models first, then fallback to common names
+            # Use models directly from available_models list (they have correct format)
             models_to_try = []
             
-            # Add available models first (they're most likely to work)
+            # Add available models first (they already have /models/ prefix if needed)
             if available_model_names:
-                # Filter to common model names
-                preferred_patterns = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro', 'gemini-2']
+                # Prefer newer models (2.5, 2.0) and latest versions
+                preferred_patterns = [
+                    'gemini-2.5-pro',
+                    'gemini-2.0-flash',
+                    'gemini-flash-latest',
+                    'gemini-pro-latest',
+                    'gemini-2.0-flash-001',
+                    'gemini-1.5-pro',  # Fallback to older models
+                    'gemini-1.5-flash',
+                ]
+                
                 for pattern in preferred_patterns:
-                    matching = [m for m in available_model_names if pattern in m.lower()]
-                    models_to_try.extend(matching[:2])  # Add up to 2 matches per pattern
-            
-            # Add fallback models - use newer models that are more likely to work
-            fallback_models = [
-                'models/gemini-2.0-flash',      # Newer model
-                'models/gemini-2.5-pro',        # Newer model
-                'models/gemini-flash-latest',   # Latest flash
-                'models/gemini-pro-latest',     # Latest pro
-                'models/gemini-2.0-flash-001',  # Specific version
-                'gemini-1.5-flash',             # Old models as last resort
-                'gemini-1.5-pro',
-                'gemini-pro',
-            ]
-            models_to_try.extend([m for m in fallback_models if m not in models_to_try])
+                    # Find models matching pattern (case insensitive)
+                    matching = [m for m in available_model_names if pattern.lower() in m.lower()]
+                    if matching:
+                        # Take first match (most specific)
+                        models_to_try.append(matching[0])
+                        logger.debug(f"Found available model matching '{pattern}': {matching[0]}")
+                
+                # If no preferred models found, try first few available models
+                if not models_to_try and available_model_names:
+                    models_to_try = available_model_names[:5]
+                    logger.info(f"No preferred models found, trying first available: {models_to_try}")
             
             # Remove duplicates while preserving order
             seen = set()
             models_to_try = [m for m in models_to_try if not (m in seen or seen.add(m))]
             
-            logger.info(f"Trying {len(models_to_try)} Gemini models...")
+            logger.info(f"Trying {len(models_to_try)} Gemini models from available list...")
             
             model = None
             working_model = None
@@ -210,6 +215,7 @@ Please provide your analysis and recommendations in a clear format with:
             for model_name in models_to_try:
                 try:
                     logger.debug(f"Trying Gemini model: {model_name}")
+                    # Use model name as-is from available list (already has correct format)
                     model = genai.GenerativeModel(model_name)
                     # Test with a tiny prompt to verify it works
                     test_response = model.generate_content("Hi", generation_config={'max_output_tokens': 1})
@@ -222,9 +228,10 @@ Please provide your analysis and recommendations in a clear format with:
                     continue
             
             if not model:
-                error_msg = f"No working Gemini model found. Tried {len(models_to_try)} models."
+                error_msg = f"No working Gemini model found. Tried {len(models_to_try)} models from available list."
                 if available_model_names:
-                    error_msg += f" Available models: {available_model_names[:10]}"
+                    error_msg += f" Available models count: {len(available_model_names)}"
+                    error_msg += f" Sample: {available_model_names[:5]}"
                 raise Exception(error_msg)
             
             prompt = self._get_gemini_prompt(data_summary)
