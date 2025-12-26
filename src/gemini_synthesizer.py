@@ -81,7 +81,7 @@ Based on your review of all recommendations:
 Format your recommendations clearly with specific price levels that can be used for automated monitoring and alerts. Ensure all price levels are exact and actionable.
 """
             
-            gemini_model = os.getenv('GEMINI_MODEL', 'gemini-pro')
+            gemini_model = os.getenv('GEMINI_MODEL', 'gemini-1.5-pro')
             model = genai.GenerativeModel(gemini_model)
             response = model.generate_content(prompt)
             result = response.text

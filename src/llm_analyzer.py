@@ -51,7 +51,7 @@ class LLMAnalyzer:
         
         # Claude
         self.claude_api_key = os.getenv('ANTHROPIC_API_KEY')
-        self.claude_model = os.getenv('ANTHROPIC_MODEL', 'claude-3-5-sonnet-20240229')
+        self.claude_model = os.getenv('ANTHROPIC_MODEL', 'claude-3-5-sonnet-20241022')
         self.claude_enabled = ANTHROPIC_AVAILABLE and bool(self.claude_api_key)
         if self.claude_enabled:
             self.claude_client = Anthropic(api_key=self.claude_api_key)
@@ -152,7 +152,7 @@ Please provide your analysis and recommendations in a clear format with:
             return None
         
         try:
-            gemini_model = os.getenv('GEMINI_MODEL', 'gemini-pro')
+            gemini_model = os.getenv('GEMINI_MODEL', 'gemini-1.5-pro')
             model = genai.GenerativeModel(gemini_model)
             prompt = self._get_gemini_prompt(data_summary)
             response = model.generate_content(prompt)
