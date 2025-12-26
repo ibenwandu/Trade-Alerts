@@ -149,7 +149,7 @@ Format your recommendations clearly with specific price levels that can be used 
             
             response = model.generate_content(prompt)
             result = response.text
-            logger.info(f"✅ Gemini synthesis completed (model: {gemini_model})")
+            logger.info(f"✅ Gemini synthesis completed (model: {working_model})")
             return result
             
         except Exception as e:
