@@ -20,8 +20,7 @@ colorlog>=6.8.0
 # LLM APIs
 anthropic>=0.34.0  # Claude
 openai>=1.0.0      # ChatGPT
-google-genai>=0.2.0
-google-generativeai>=0.3.0  # Gemini
+google-generativeai>=0.3.0>=0.3.0  # Gemini
 
 # Email
 # smtplib is built-in, no extra package needed
