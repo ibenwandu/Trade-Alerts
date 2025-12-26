@@ -111,12 +111,16 @@ Format your recommendations clearly with specific price levels that can be used 
                     for pattern in preferred_patterns:
                         matching = [m for m in available_model_names if pattern.lower() in m.lower()]
                         if matching:
-                            models_to_try.append(matching[0])
-                            break
+                            # Add all matches for this pattern (up to 2)
+                            models_to_try.extend(matching[:2])
+                    
+                    # Remove duplicates while preserving order
+                    seen = set()
+                    models_to_try = [m for m in models_to_try if not (m in seen or seen.add(m))]
                     
                     # If no preferred found, use first available
                     if not models_to_try:
-                        models_to_try = available_model_names[:3]
+                        models_to_try = available_model_names[:5]
             except Exception:
                 # Fallback if listing fails
                 models_to_try = [
