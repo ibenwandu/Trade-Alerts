@@ -280,10 +280,10 @@ Please provide your analysis and recommendations in a clear format with:
                 )
             except Exception as model_error:
                 # Try alternative Claude models - use working model from diagnostic
-                logger.warning(f"Model {self.claude_model} failed, trying claude-3-5-haiku-20241822: {model_error}")
+                logger.warning(f"Model {self.claude_model} failed, trying claude-3-5-haiku-20241022: {model_error}")
                 try:
                     message = self.claude_client.messages.create(
-                        model='claude-3-5-haiku-20241822',  # This one WORKS from diagnostic!
+                        model='claude-3-5-haiku-20241022',  # This one WORKS from diagnostic!
                         max_tokens=4000,
                         messages=[{
                             "role": "user",
