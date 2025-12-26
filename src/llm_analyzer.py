@@ -22,11 +22,26 @@ try:
 except ImportError:
     ANTHROPIC_AVAILABLE = False
 
+# ChatGPT
+try:
+    from openai import OpenAI
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+
 class LLMAnalyzer:
     """Analyze forex data using multiple LLMs"""
     
     def __init__(self):
         """Initialize LLM analyzers"""
+        # ChatGPT
+        self.chatgpt_api_key = os.getenv('OPENAI_API_KEY')
+        self.chatgpt_model = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
+        self.chatgpt_enabled = OPENAI_AVAILABLE and bool(self.chatgpt_api_key)
+        if self.chatgpt_enabled:
+            self.chatgpt_client = OpenAI(api_key=self.chatgpt_api_key)
+            logger.info(f"✅ ChatGPT enabled (model: {self.chatgpt_model})")
+        
         # Gemini
         self.gemini_api_key = os.getenv('GOOGLE_API_KEY')
         self.gemini_enabled = GEMINI_AVAILABLE and bool(self.gemini_api_key)
@@ -36,7 +51,7 @@ class LLMAnalyzer:
         
         # Claude
         self.claude_api_key = os.getenv('ANTHROPIC_API_KEY')
-        self.claude_model = os.getenv('ANTHROPIC_MODEL', 'claude-3-5-sonnet-20241022')
+        self.claude_model = os.getenv('ANTHROPIC_MODEL', 'claude-3-5-sonnet-20240229')
         self.claude_enabled = ANTHROPIC_AVAILABLE and bool(self.claude_api_key)
         if self.claude_enabled:
             self.claude_client = Anthropic(api_key=self.claude_api_key)
@@ -98,11 +113,12 @@ Please provide your analysis and recommendations in a clear format with:
             return None
         
         try:
-            model = genai.GenerativeModel('gemini-pro')
+            gemini_model = os.getenv('GEMINI_MODEL', 'gemini-pro')
+            model = genai.GenerativeModel(gemini_model)
             prompt = self._get_gemini_prompt(data_summary)
             response = model.generate_content(prompt)
             result = response.text
-            logger.info("✅ Gemini analysis completed")
+            logger.info(f"✅ Gemini analysis completed (model: {gemini_model})")
             return result
         except Exception as e:
             logger.error(f"Error with Gemini analysis: {e}")

@@ -74,10 +74,11 @@ Based on your review of all recommendations:
 Format your recommendations clearly with specific price levels that can be used for automated monitoring and alerts.
 """
             
-            model = genai.GenerativeModel('gemini-pro')
+            gemini_model = os.getenv('GEMINI_MODEL', 'gemini-pro')
+            model = genai.GenerativeModel(gemini_model)
             response = model.generate_content(prompt)
             result = response.text
-            logger.info("✅ Gemini synthesis completed")
+            logger.info(f"✅ Gemini synthesis completed (model: {gemini_model})")
             return result
             
         except Exception as e:

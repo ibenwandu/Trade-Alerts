@@ -28,6 +28,8 @@ Edit `.env` and add:
 - `GOOGLE_API_KEY` - For Gemini (get from Google AI Studio) - also used for final synthesis
 - `ANTHROPIC_API_KEY` - For Claude (get from console.anthropic.com)
 - `OPENAI_API_KEY` - For ChatGPT (get from platform.openai.com)
+- `GEMINI_MODEL` - Optional (default: gemini-2.0-flash-exp)
+- `OPENAI_MODEL` - Optional (default: gpt-4o-mini)
 
 ### Email (for sending recommendations)
 - `SENDER_EMAIL` - Your email

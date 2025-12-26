@@ -31,8 +31,8 @@ services:
         sync: false
       - key: PUSHOVER_USER_KEY
         sync: false
-      - key: PRICE_API_URL
-        value: https://api.exchangerate-api.com/v4/latest/USD
+      - key: GEMINI_MODEL
+        value: gemini-pro
       - key: CHECK_INTERVAL
         value: "60"
       - key: ENTRY_TOLERANCE_PIPS
@@ -44,7 +44,7 @@ services:
       - key: ANALYSIS_TIMES
         value: "07:00,09:00,12:00,16:00"
       - key: OPENAI_MODEL
-        value: gpt-4
+        value: gpt-4o-mini
       - key: ANTHROPIC_MODEL
-        value: claude-3-5-sonnet-20241022
+        value: claude-3-5-sonnet-20240229
 

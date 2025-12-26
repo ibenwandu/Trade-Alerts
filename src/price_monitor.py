@@ -1,4 +1,4 @@
-"""Monitor real-time currency prices"""
+"""Monitor real-time currency prices using Frankfurter.app"""
 
 import os
 import requests
@@ -10,26 +10,20 @@ load_dotenv()
 logger = setup_logger()
 
 class PriceMonitor:
-    """Monitor current market prices"""
+    """Monitor current market prices using Frankfurter.app (free, no API key)"""
     
-    def __init__(self, base_url: str = None):
-        """
-        Initialize price monitor
-        
-        Args:
-            base_url: API URL for getting exchange rates
-        """
-        self.base_url = base_url or os.getenv(
-            'PRICE_API_URL',
-            'https://api.exchangerate-api.com/v4/latest/USD'
-        )
+    def __init__(self):
+        """Initialize price monitor"""
+        # Frankfurter.app API (free, no API key needed)
+        # Documentation: https://www.frankfurter.app/
+        self.base_url = 'https://api.frankfurter.app/latest'
         self.cache = {}
         self.cache_time = 0
         self.cache_ttl = 60  # Cache for 60 seconds
     
     def get_rate(self, pair: str) -> Optional[float]:
         """
-        Get current exchange rate for a currency pair
+        Get current exchange rate for a currency pair using Frankfurter.app
         
         Args:
             pair: Currency pair (e.g., 'EUR/USD')
@@ -41,19 +35,18 @@ class PriceMonitor:
             # Normalize pair
             base, quote = pair.split('/')
             
-            # Use USD as base currency for API
-            if base == 'USD':
-                # Direct rate: USD/XXX
-                rate = self._get_usd_rate(quote)
+            # Frankfurter.app uses EUR as base, so we need to convert
+            # For pairs with EUR, get directly
+            if base == 'EUR':
+                rate = self._get_frankfurter_rate('EUR', quote)
                 return rate if rate else None
-            elif quote == 'USD':
-                # Inverse rate: XXX/USD
-                rate = self._get_usd_rate(base)
+            elif quote == 'EUR':
+                rate = self._get_frankfurter_rate('EUR', base)
                 return 1.0 / rate if rate else None
             else:
-                # Cross rate: XXX/YYY = (USD/YYY) / (USD/XXX)
-                rate_base = self._get_usd_rate(base)
-                rate_quote = self._get_usd_rate(quote)
+                # Cross rate: XXX/YYY = (EUR/YYY) / (EUR/XXX)
+                rate_base = self._get_frankfurter_rate('EUR', base)
+                rate_quote = self._get_frankfurter_rate('EUR', quote)
                 if rate_base and rate_quote:
                     return rate_quote / rate_base
                 return None
@@ -61,34 +54,33 @@ class PriceMonitor:
             logger.error(f"Error getting rate for {pair}: {e}")
             return None
     
-    def _get_usd_rate(self, currency: str) -> Optional[float]:
-        """Get USD/XXX rate"""
+    def _get_frankfurter_rate(self, base: str, quote: str) -> Optional[float]:
+        """Get exchange rate from Frankfurter.app"""
         import time
         
         # Check cache
+        cache_key = f"{base}/{quote}"
         current_time = time.time()
-        if currency in self.cache and (current_time - self.cache_time) < self.cache_ttl:
-            return self.cache[currency]
+        if cache_key in self.cache and (current_time - self.cache_time) < self.cache_ttl:
+            return self.cache[cache_key]
         
         try:
-            response = requests.get(self.base_url, timeout=5)
+            # Frankfurter.app: https://api.frankfurter.app/latest?from=EUR&to=USD
+            url = f"{self.base_url}?from={base}&to={quote}"
+            response = requests.get(url, timeout=5)
             response.raise_for_status()
             data = response.json()
             
-            if 'rates' in data:
-                rates = data['rates']
-                if currency in rates:
-                    rate = float(rates[currency])
-                    # Update cache
-                    self.cache = rates
-                    self.cache_time = current_time
-                    return rate
-                else:
-                    logger.warning(f"Currency {currency} not found in API response")
+            if 'rates' in data and quote in data['rates']:
+                rate = float(data['rates'][quote])
+                # Update cache
+                self.cache[cache_key] = rate
+                self.cache_time = current_time
+                return rate
             else:
-                logger.warning("API response missing 'rates' key")
+                logger.warning(f"Rate {base}/{quote} not found in API response")
         except Exception as e:
-            logger.error(f"Error fetching rates from API: {e}")
+            logger.error(f"Error fetching rate from Frankfurter.app: {e}")
         
         return None
     
@@ -133,4 +125,3 @@ class PriceMonitor:
             logger.debug(f"{pair} SELL check: current={current_price}, entry={entry_price}, hit={hit}")
         
         return hit
-

@@ -28,8 +28,24 @@ class DriveReader:
         
         Args:
             folder_id: Google Drive folder ID containing analysis files
+                      (can be full URL or just the ID)
         """
-        self.folder_id = folder_id
+        # Extract folder ID from URL if needed
+        # Handle formats like: https://drive.google.com/drive/folders/1xlsxAV7dim4NubUNK8fCIuARF_iVPFEC?usp=drive_link
+        # Or just: 1xlsxAV7dim4NubUNK8fCIuARF_iVPFEC
+        if 'drive.google.com' in folder_id:
+            # Extract ID from URL
+            if '/folders/' in folder_id:
+                self.folder_id = folder_id.split('/folders/')[1].split('?')[0].split('/')[0]
+            elif 'id=' in folder_id:
+                self.folder_id = folder_id.split('id=')[1].split('&')[0].split('?')[0]
+            else:
+                self.folder_id = folder_id
+        elif '?usp=' in folder_id or '&' in folder_id:
+            # Handle case where ID has query parameters
+            self.folder_id = folder_id.split('?')[0].split('&')[0]
+        else:
+            self.folder_id = folder_id
         self.drive = None
         self.enabled = False
         

@@ -61,6 +61,8 @@ GOOGLE_DRIVE_REFRESH_TOKEN=your-refresh-token
 ANTHROPIC_API_KEY=your-anthropic-key  # Claude
 GOOGLE_API_KEY=your-google-key        # Gemini (also used for final synthesis)
 OPENAI_API_KEY=your-openai-key        # ChatGPT
+GEMINI_MODEL=gemini-3.0-pro           # Gemini model (default: gemini-3.0-pro)
+OPENAI_MODEL=gpt-4o-mini              # ChatGPT model (default: gpt-4o-mini)
 
 # Email (for sending recommendations)
 SMTP_SERVER=smtp.gmail.com
@@ -73,8 +75,8 @@ RECIPIENT_EMAIL=your-email@gmail.com
 PUSHOVER_API_TOKEN=your-pushover-token
 PUSHOVER_USER_KEY=your-pushover-user-key
 
-# Price API
-PRICE_API_URL=https://api.exchangerate-api.com/v4/latest/USD
+# Price API (using Frankfurter.app - free, no API key needed)
+# No configuration needed - uses Frankfurter.app automatically
 
 # Monitoring
 CHECK_INTERVAL=60
