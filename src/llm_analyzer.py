@@ -11,10 +11,17 @@ logger = setup_logger()
 # Gemini - Use the working package (google-generativeai)
 # Note: google-genai has different API, stick with google-generativeai for now
 try:
-    import google.generativeai as genai
+    # Explicitly import generativeai to avoid conflict with google-genai
+    from google import generativeai
+    genai = generativeai
     GEMINI_AVAILABLE = True
 except ImportError:
-    GEMINI_AVAILABLE = False
+    try:
+        # Fallback to direct import
+        import google.generativeai as genai
+        GEMINI_AVAILABLE = True
+    except ImportError:
+        GEMINI_AVAILABLE = False
 
 # Claude
 try:
