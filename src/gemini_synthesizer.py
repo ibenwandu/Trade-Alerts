@@ -57,21 +57,28 @@ class GeminiSynthesizer:
             for name, rec in valid_recommendations.items():
                 recommendations_text += f"\n\n=== {name.upper()} RECOMMENDATIONS ===\n{rec}\n"
             
-            prompt = f"""You are an expert forex trader reviewing recommendations from multiple AI analysts. Review the following recommendations from ChatGPT, Gemini, and Claude. Analyze them, identify convergence points, and provide your final trading recommendations.
+            prompt = f"""You are an expert forex trader with over 20 years of experience reviewing recommendations from multiple AI analysts. Each analyst has provided recommendations based on BOTH:
+1. Data from the Google Drive "Forex tracker" folder (hourly reports on trending currencies)
+2. Their own research of current news, market trends, and currency movements
+
+Review the following recommendations from ChatGPT, Gemini, and Claude. Analyze them, identify convergence points, and provide your final trading recommendations.
 
 {recommendations_text}
 
 Based on your review of all recommendations:
 1. Identify the strongest trading opportunities (where multiple analysts agree)
-2. Provide final trading recommendations with specific:
+2. Consider upcoming high-impact news events that might cause sudden reversals
+3. Cross-reference findings from Google Drive data with current market research
+4. Provide final trading recommendations with specific:
    - Currency pairs
    - Entry prices (exact levels)
    - Exit/target prices (exact levels)
    - Stop loss levels (exact levels)
    - Position sizing guidance
-   - Rationale for each recommendation
+   - Rationale for each recommendation (synthesizing insights from both data sources)
+   - Risk assessment including news event impact
 
-Format your recommendations clearly with specific price levels that can be used for automated monitoring and alerts.
+Format your recommendations clearly with specific price levels that can be used for automated monitoring and alerts. Ensure all price levels are exact and actionable.
 """
             
             gemini_model = os.getenv('GEMINI_MODEL', 'gemini-pro')

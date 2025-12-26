@@ -60,50 +60,89 @@ class LLMAnalyzer:
     
     def _get_chatgpt_prompt(self, data_summary: str) -> str:
         """Get prompt for ChatGPT"""
-        return f"""I want you to review the following report and advise and provide a critique or confirmation based on your knowledge as an expert forex trader with many decades experience and access to all the information that could affect the performance of currencies, crypto and stock market. While the report is based on different resources I want you to do your own research of the current trends in currencies and fact-check the information based on your own research and evaluate the recommendations provided in the report.
+        return f"""As an expert forex trader with over 20 years of experience in forex trading, please analyze trading opportunities using BOTH of the following sources:
 
-FOREX DATA FROM GOOGLE DRIVE:
+1. INFORMATION FROM GOOGLE DRIVE (Forex tracker folder):
+The following data contains hourly reports on trending currencies retrieved from the Google Drive folder called "Forex tracker":
 {data_summary}
+
+2. YOUR OWN RESEARCH:
+You have access to current forex market information, global events, news, and real-time currency trends. Use your knowledge and research capabilities to:
+- Research current market trends and currency movements
+- Identify relevant news events and economic indicators
+- Analyze technical and fundamental factors
+- Fact-check and validate information from the Google Drive data
+- Identify any discrepancies or additional opportunities not in the provided data
+
+ANALYSIS REQUIREMENTS:
+Based on BOTH the Google Drive information AND your own research of current news and currency trends, provide your recommendations regarding any available trading opportunities currently in the market. Also provide updated risk-managed entry/exit price levels and position sizing guidance based on current price action. As part of the analysis, check if there are any upcoming high-impact news events today that might cause a sudden reversal in this trend.
 
 Please provide your analysis and recommendations in a clear format with:
 - Currency pairs to trade
-- Entry prices
-- Exit/target prices
-- Stop loss levels
+- Entry prices (exact levels)
+- Exit/target prices (exact levels)
+- Stop loss levels (exact levels)
 - Position sizing recommendations
-- Rationale for each recommendation
+- Rationale for each recommendation (indicating which insights came from Google Drive data vs. your own research)
+- Upcoming high-impact news events that might affect the trend
 """
 
     def _get_gemini_prompt(self, data_summary: str) -> str:
         """Get prompt for Gemini"""
-        return f"""I want you to review the following report and advise and provide a critique or confirmation based on your knowledge as an expert forex trader with many decades experience and access to all the information that could affect the performance of currencies, crypto and stock market. While the report is based on different resources I want you to do your own research of the current trends in currencies and fact-check the information based on your own research and evaluate the recommendations provided in the report.
+        return f"""As an expert forex trader with over 20 years of experience in forex trading, please analyze trading opportunities using BOTH of the following sources:
 
-FOREX DATA FROM GOOGLE DRIVE:
+1. INFORMATION FROM GOOGLE DRIVE (Forex tracker folder):
+The following data contains hourly reports on trending currencies retrieved from the Google Drive folder called "Forex tracker":
 {data_summary}
+
+2. YOUR OWN RESEARCH:
+You have access to current forex market information, global events, news, and real-time currency trends. Use your knowledge and research capabilities to:
+- Research current market trends and currency movements
+- Identify relevant news events and economic indicators
+- Analyze technical and fundamental factors
+- Fact-check and validate information from the Google Drive data
+- Identify any discrepancies or additional opportunities not in the provided data
+
+ANALYSIS REQUIREMENTS:
+Based on BOTH the Google Drive information AND your own research of current news and currency trends, provide your recommendations regarding any available trading opportunities currently in the market. Also provide updated risk-managed entry/exit price levels and position sizing guidance based on current price action. As part of the analysis, check if there are any upcoming high-impact news events today that might cause a sudden reversal in this trend.
 
 Please provide your analysis and recommendations in a clear format with:
 - Currency pairs to trade
-- Entry prices
-- Exit/target prices
-- Stop loss levels
+- Entry prices (exact levels)
+- Exit/target prices (exact levels)
+- Stop loss levels (exact levels)
 - Position sizing recommendations
-- Rationale for each recommendation
+- Rationale for each recommendation (indicating which insights came from Google Drive data vs. your own research)
+- Upcoming high-impact news events that might affect the trend
 """
 
     def _get_claude_prompt(self, data_summary: str) -> str:
         """Get prompt for Claude"""
-        return f"""I want you to review the following report and advise and provide a critique or confirmation based on your knowledge as an expert forex trader with many decades experience and access to all the information that could affect the performance of currencies, crypto and stock market. While the report is based on different resources I want you to do your own research of the current trends in currencies and fact-check the information based on your own research and evaluate the recommendations provided in the report.
+        return f"""As an expert forex trader with over 20 years of experience in forex trading, please analyze trading opportunities using BOTH of the following sources:
 
-FOREX DATA FROM GOOGLE DRIVE:
+1. INFORMATION FROM GOOGLE DRIVE (Forex tracker folder):
+The following data contains hourly reports on trending currencies retrieved from the Google Drive folder called "Forex tracker":
 {data_summary}
+
+2. YOUR OWN RESEARCH:
+You have access to current forex market information, global events, news, and real-time currency trends. Use your knowledge and research capabilities to:
+- Research current market trends and currency movements
+- Identify relevant news events and economic indicators
+- Analyze technical and fundamental factors
+- Fact-check and validate information from the Google Drive data
+- Identify any discrepancies or additional opportunities not in the provided data
+
+ANALYSIS REQUIREMENTS:
+Based on BOTH the Google Drive information AND your own research of current news and currency trends, provide your recommendations regarding any available trading opportunities currently in the market. Also provide updated risk-managed entry/exit price levels and position sizing guidance based on current price action. As part of the analysis, check if there are any upcoming high-impact news events today that might cause a sudden reversal in this trend.
 
 Please provide your analysis and recommendations in a clear format with:
 - Currency pairs to trade
-- Entry prices
-- Exit/target prices
-- Stop loss levels
+- Entry prices (exact levels)
+- Exit/target prices (exact levels)
+- Stop loss levels (exact levels)
 - Position sizing recommendations
-- Rationale for each recommendation
+- Rationale for each recommendation (indicating which insights came from Google Drive data vs. your own research)
+- Upcoming high-impact news events that might affect the trend
 """
 
     def analyze_with_gemini(self, data_summary: str) -> Optional[str]:
