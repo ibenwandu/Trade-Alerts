@@ -43,6 +43,8 @@ services:
         value: "15"
       - key: ANALYSIS_TIMES
         value: "07:00,09:00,12:00,16:00"
+      - key: ANALYSIS_TIMEZONE
+        value: "America/New_York"
       - key: OPENAI_MODEL
         value: gpt-4o-mini
       - key: ANTHROPIC_MODEL

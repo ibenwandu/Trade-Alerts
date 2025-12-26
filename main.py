@@ -5,6 +5,7 @@ import time
 import sys
 from datetime import datetime
 from dotenv import load_dotenv
+import pytz
 from src.drive_reader import DriveReader
 from src.data_formatter import DataFormatter
 from src.llm_analyzer import LLMAnalyzer
@@ -31,8 +32,10 @@ class TradeAlertSystem:
         # Initialize components
         folder_id = os.getenv('GOOGLE_DRIVE_FOLDER_ID', '')
         if not folder_id:
-            logger.error("GOOGLE_DRIVE_FOLDER_ID not set in .env")
-            sys.exit(1)
+            logger.error("GOOGLE_DRIVE_FOLDER_ID not set in environment variables")
+            logger.error("Please set GOOGLE_DRIVE_FOLDER_ID in Render Dashboard → Environment")
+            # Don't exit immediately - let it fail gracefully so we can see the error in logs
+            raise ValueError("GOOGLE_DRIVE_FOLDER_ID environment variable is required")
         
         self.drive_reader = DriveReader(folder_id)
         self.data_formatter = DataFormatter()
@@ -59,25 +62,42 @@ class TradeAlertSystem:
         # Show next analysis time
         next_analysis = self.scheduler.get_next_analysis_time()
         if next_analysis:
-            logger.info(f"⏰ Next scheduled analysis: {next_analysis.strftime('%Y-%m-%d %H:%M')}")
+            # Convert to EST for display
+            est_tz = pytz.timezone('America/New_York')
+            if next_analysis.tzinfo is None:
+                next_analysis_utc = pytz.UTC.localize(next_analysis)
+            else:
+                next_analysis_utc = next_analysis
+            next_analysis_est = next_analysis_utc.astimezone(est_tz)
+            logger.info(f"⏰ Next scheduled analysis: {next_analysis_est.strftime('%Y-%m-%d %H:%M %Z')} (EST/EDT)")
         else:
             logger.info("⏰ No scheduled analysis times configured")
         
         try:
             check_count = 0
+            est_tz = pytz.timezone('America/New_York')
             while True:
-                current_time = datetime.now()
+                # Get current time in UTC (Render uses UTC)
+                current_time = datetime.now(pytz.UTC)
                 check_count += 1
                 
                 # Log status every 10 checks (10 minutes)
                 if check_count % 10 == 0:
                     logger.info(f"\n=== Status Check #{check_count} ===")
-                    logger.info(f"Current time: {current_time.strftime('%H:%M:%S')}")
+                    # Show time in EST
+                    current_time_est = current_time.astimezone(est_tz)
+                    logger.info(f"Current time: {current_time_est.strftime('%H:%M:%S %Z')} (EST/EDT)")
                     logger.info(f"Active opportunities: {len(self.opportunities)}")
                     if next_analysis:
-                        time_until = (next_analysis - current_time).total_seconds() / 60
+                        # Ensure both times are timezone-aware for calculation
+                        if next_analysis.tzinfo is None:
+                            next_analysis_utc = pytz.UTC.localize(next_analysis)
+                        else:
+                            next_analysis_utc = next_analysis
+                        time_until = (next_analysis_utc - current_time).total_seconds() / 60
                         if time_until > 0:
-                            logger.info(f"Next analysis in: {int(time_until)} minutes")
+                            next_analysis_est = next_analysis_utc.astimezone(est_tz)
+                            logger.info(f"Next analysis at: {next_analysis_est.strftime('%H:%M %Z')} (in {int(time_until)} minutes)")
                 
                 # Check if scheduled analysis time
                 if self.scheduler.should_run_analysis(current_time):
