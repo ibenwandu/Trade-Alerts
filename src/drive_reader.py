@@ -69,15 +69,27 @@ class DriveReader:
         
         if refresh_token and credentials_json:
             # Create credentials.json from environment variable if needed
+            # This MUST be done BEFORE GoogleAuth() is called, as it looks for client_secrets.json by default
             if not os.path.exists(credentials_file):
                 try:
                     creds_data = json.loads(credentials_json)
                     with open(credentials_file, 'w') as f:
                         json.dump(creds_data, f)
-                    logger.info("Created credentials.json from environment variable")
+                    logger.info(f"Created {credentials_file} from environment variable")
                 except Exception as e:
-                    logger.error(f"Failed to create credentials.json: {e}")
+                    logger.error(f"Failed to create {credentials_file}: {e}")
                     raise
+            
+            # Also create client_secrets.json as alias (pydrive2 looks for this by default)
+            client_secrets_file = 'client_secrets.json'
+            if not os.path.exists(client_secrets_file):
+                try:
+                    creds_data = json.loads(credentials_json)
+                    with open(client_secrets_file, 'w') as f:
+                        json.dump(creds_data, f)
+                    logger.debug(f"Created {client_secrets_file} for pydrive2 compatibility")
+                except Exception as e:
+                    logger.warning(f"Could not create {client_secrets_file}: {e}")
             
             # Load credentials
             with open(credentials_file, 'r') as f:
@@ -96,7 +108,11 @@ class DriveReader:
                     scopes=['https://www.googleapis.com/auth/drive'],
                     token_info_uri=None
                 )
+                
+                # Configure GoogleAuth to use our credentials file
                 gauth = GoogleAuth()
+                # Set settings to use credentials.json instead of client_secrets.json
+                gauth.settings['client_config_file'] = credentials_file
                 gauth.credentials = credentials
                 gauth.Refresh()
                 self.drive = GoogleDrive(gauth)
