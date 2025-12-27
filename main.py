@@ -104,8 +104,16 @@ class TradeAlertSystem:
                     # Avoid running multiple times in same window
                     if (self.last_analysis_time is None or 
                         (current_time - self.last_analysis_time).total_seconds() > 300):
-                        logger.info(f"\n=== Scheduled Analysis Time: {current_time.strftime('%H:%M')} ===")
-                        self._run_full_analysis()
+                        # Show time in EST for logging
+                        current_time_est = current_time.astimezone(est_tz)
+                        logger.info(f"\n{'='*80}")
+                        logger.info(f"=== Scheduled Analysis Time: {current_time_est.strftime('%Y-%m-%d %H:%M:%S %Z')} (EST/EDT) ===")
+                        logger.info(f"{'='*80}")
+                        try:
+                            self._run_full_analysis()
+                            logger.info(f"✅ Analysis completed successfully at {current_time_est.strftime('%H:%M:%S %Z')}")
+                        except Exception as e:
+                            logger.error(f"❌ Analysis failed at {current_time_est.strftime('%H:%M:%S %Z')}: {e}", exc_info=True)
                         self.last_analysis_time = current_time
                         # Update next analysis time
                         next_analysis = self.scheduler.get_next_analysis_time()
@@ -161,11 +169,13 @@ class TradeAlertSystem:
             
             # Step 3: Analyze with LLMs (ChatGPT, Gemini, Claude)
             logger.info("Step 3: Running LLM analysis (ChatGPT, Gemini, Claude)...")
-            llm_recommendations = self.llm_analyzer.analyze_all(data_summary)
+            # Get current datetime for all LLM calls
+            current_datetime = datetime.now(pytz.UTC)
+            llm_recommendations = self.llm_analyzer.analyze_all(data_summary, current_datetime)
             
             # Step 4: Synthesize with Gemini (final recommendation)
             logger.info("Step 4: Synthesizing final recommendations with Gemini...")
-            gemini_final = self.gemini_synthesizer.synthesize(llm_recommendations)
+            gemini_final = self.gemini_synthesizer.synthesize(llm_recommendations, current_datetime)
             
             # Step 5: Send email with all recommendations
             logger.info("Step 5: Sending email with all recommendations...")

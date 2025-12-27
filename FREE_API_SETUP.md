@@ -163,3 +163,4 @@ If keys are set correctly but still getting errors:
 
 **Remember:** Free accounts work! The issue is likely API key setup, not account type.
 
+

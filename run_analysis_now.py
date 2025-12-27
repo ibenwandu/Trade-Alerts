@@ -2,7 +2,9 @@
 
 import os
 import sys
+from datetime import datetime
 from dotenv import load_dotenv
+import pytz
 from src.drive_reader import DriveReader
 from src.data_formatter import DataFormatter
 from src.llm_analyzer import LLMAnalyzer
@@ -71,11 +73,13 @@ def run_analysis():
         
         # Step 3: Analyze with LLMs (ChatGPT, Gemini, Claude)
         logger.info("Step 3: Running LLM analysis (ChatGPT, Gemini, Claude)...")
-        llm_recommendations = llm_analyzer.analyze_all(data_summary)
+        # Get current datetime for all LLM calls
+        current_datetime = datetime.now(pytz.UTC)
+        llm_recommendations = llm_analyzer.analyze_all(data_summary, current_datetime)
         
         # Step 4: Synthesize with Gemini (final recommendation)
         logger.info("Step 4: Synthesizing final recommendations with Gemini...")
-        gemini_final = gemini_synthesizer.synthesize(llm_recommendations)
+        gemini_final = gemini_synthesizer.synthesize(llm_recommendations, current_datetime)
         
         # Step 5: Send email with all recommendations
         logger.info("Step 5: Sending email with all recommendations...")
@@ -104,4 +108,5 @@ def run_analysis():
 
 if __name__ == '__main__':
     run_analysis()
+
 

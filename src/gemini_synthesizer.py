@@ -2,7 +2,9 @@
 
 import os
 from typing import Dict, Optional
+from datetime import datetime
 from dotenv import load_dotenv
+import pytz
 from src.logger import setup_logger
 
 load_dotenv()
@@ -36,12 +38,13 @@ class GeminiSynthesizer:
         else:
             logger.warning("Gemini not enabled - set GOOGLE_API_KEY")
     
-    def synthesize(self, llm_recommendations: Dict[str, Optional[str]]) -> Optional[str]:
+    def synthesize(self, llm_recommendations: Dict[str, Optional[str]], current_datetime: datetime = None) -> Optional[str]:
         """
         Synthesize recommendations from multiple LLMs using Gemini
         
         Args:
             llm_recommendations: Dictionary with LLM names and their recommendations
+            current_datetime: Current datetime (defaults to now, in UTC)
             
         Returns:
             Final synthesized recommendations
@@ -49,6 +52,14 @@ class GeminiSynthesizer:
         if not self.enabled:
             logger.warning("Gemini not enabled")
             return None
+        
+        # Get current datetime if not provided
+        if current_datetime is None:
+            current_datetime = datetime.now(pytz.UTC)
+        
+        # Ensure timezone-aware
+        if current_datetime.tzinfo is None:
+            current_datetime = pytz.UTC.localize(current_datetime)
         
         # Filter out None values
         valid_recommendations = {
@@ -65,7 +76,23 @@ class GeminiSynthesizer:
             for name, rec in valid_recommendations.items():
                 recommendations_text += f"\n\n=== {name.upper()} RECOMMENDATIONS ===\n{rec}\n"
             
-            prompt = f"""You are an expert forex trader with over 20 years of experience reviewing recommendations from multiple AI analysts. Each analyst has provided recommendations based on BOTH:
+            # Format in both UTC and EST/EDT
+            est_tz = pytz.timezone('America/New_York')
+            current_est = current_datetime.astimezone(est_tz)
+            current_utc = current_datetime.astimezone(pytz.UTC)
+            
+            date_time_info = f"""
+IMPORTANT: CURRENT DATE AND TIME
+- Current Date (EST/EDT): {current_est.strftime('%Y-%m-%d')}
+- Current Time (EST/EDT): {current_est.strftime('%H:%M:%S %Z')}
+- Current Date (UTC): {current_utc.strftime('%Y-%m-%d')}
+- Current Time (UTC): {current_utc.strftime('%H:%M:%S %Z')}
+
+You MUST use the date above ({current_est.strftime('%Y-%m-%d')}) as the current date for your synthesis. Do NOT assume or hallucinate dates. All references to "today", "this date", or upcoming events should be based on {current_est.strftime('%Y-%m-%d')}.
+
+"""
+            
+            prompt = f"""{date_time_info}You are an expert forex trader with over 20 years of experience reviewing recommendations from multiple AI analysts. Each analyst has provided recommendations based on BOTH:
 1. Data from the Google Drive "Forex tracker" folder (hourly reports on trending currencies)
 2. Their own research of current news, market trends, and currency movements
 

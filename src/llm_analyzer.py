@@ -2,7 +2,9 @@
 
 import os
 from typing import Dict, Optional
+from datetime import datetime
 from dotenv import load_dotenv
+import pytz
 from src.logger import setup_logger
 
 load_dotenv()
@@ -66,9 +68,33 @@ class LLMAnalyzer:
             logger.info("✅ Claude enabled")
         
     
-    def _get_chatgpt_prompt(self, data_summary: str) -> str:
+    def _get_chatgpt_prompt(self, data_summary: str, current_datetime: datetime = None) -> str:
         """Get prompt for ChatGPT"""
-        return f"""As an expert forex trader with over 20 years of experience in forex trading, please analyze trading opportunities using BOTH of the following sources:
+        # Get current date/time if not provided
+        if current_datetime is None:
+            current_datetime = datetime.now(pytz.UTC)
+        
+        # Ensure timezone-aware
+        if current_datetime.tzinfo is None:
+            current_datetime = pytz.UTC.localize(current_datetime)
+        
+        # Format in both UTC and EST/EDT
+        est_tz = pytz.timezone('America/New_York')
+        current_est = current_datetime.astimezone(est_tz)
+        current_utc = current_datetime.astimezone(pytz.UTC)
+        
+        date_time_info = f"""
+IMPORTANT: CURRENT DATE AND TIME
+- Current Date (EST/EDT): {current_est.strftime('%Y-%m-%d')}
+- Current Time (EST/EDT): {current_est.strftime('%H:%M:%S %Z')}
+- Current Date (UTC): {current_utc.strftime('%Y-%m-%d')}
+- Current Time (UTC): {current_utc.strftime('%H:%M:%S %Z')}
+
+You MUST use the date above ({current_est.strftime('%Y-%m-%d')}) as the current date for your analysis. Do NOT assume or hallucinate dates. All references to "today", "this date", or upcoming events should be based on {current_est.strftime('%Y-%m-%d')}.
+
+"""
+        
+        return f"""{date_time_info}As an expert forex trader with over 20 years of experience in forex trading, please analyze trading opportunities using BOTH of the following sources:
 
 1. INFORMATION FROM GOOGLE DRIVE (Forex tracker folder):
 The following data contains hourly reports on trending currencies retrieved from the Google Drive folder called "Forex tracker":
@@ -95,9 +121,33 @@ Please provide your analysis and recommendations in a clear format with:
 - Upcoming high-impact news events that might affect the trend
 """
 
-    def _get_gemini_prompt(self, data_summary: str) -> str:
+    def _get_gemini_prompt(self, data_summary: str, current_datetime: datetime = None) -> str:
         """Get prompt for Gemini"""
-        return f"""As an expert forex trader with over 20 years of experience in forex trading, please analyze trading opportunities using BOTH of the following sources:
+        # Get current date/time if not provided
+        if current_datetime is None:
+            current_datetime = datetime.now(pytz.UTC)
+        
+        # Ensure timezone-aware
+        if current_datetime.tzinfo is None:
+            current_datetime = pytz.UTC.localize(current_datetime)
+        
+        # Format in both UTC and EST/EDT
+        est_tz = pytz.timezone('America/New_York')
+        current_est = current_datetime.astimezone(est_tz)
+        current_utc = current_datetime.astimezone(pytz.UTC)
+        
+        date_time_info = f"""
+IMPORTANT: CURRENT DATE AND TIME
+- Current Date (EST/EDT): {current_est.strftime('%Y-%m-%d')}
+- Current Time (EST/EDT): {current_est.strftime('%H:%M:%S %Z')}
+- Current Date (UTC): {current_utc.strftime('%Y-%m-%d')}
+- Current Time (UTC): {current_utc.strftime('%H:%M:%S %Z')}
+
+You MUST use the date above ({current_est.strftime('%Y-%m-%d')}) as the current date for your analysis. Do NOT assume or hallucinate dates. All references to "today", "this date", or upcoming events should be based on {current_est.strftime('%Y-%m-%d')}.
+
+"""
+        
+        return f"""{date_time_info}As an expert forex trader with over 20 years of experience in forex trading, please analyze trading opportunities using BOTH of the following sources:
 
 1. INFORMATION FROM GOOGLE DRIVE (Forex tracker folder):
 The following data contains hourly reports on trending currencies retrieved from the Google Drive folder called "Forex tracker":
@@ -124,9 +174,33 @@ Please provide your analysis and recommendations in a clear format with:
 - Upcoming high-impact news events that might affect the trend
 """
 
-    def _get_claude_prompt(self, data_summary: str) -> str:
+    def _get_claude_prompt(self, data_summary: str, current_datetime: datetime = None) -> str:
         """Get prompt for Claude"""
-        return f"""As an expert forex trader with over 20 years of experience in forex trading, please analyze trading opportunities using BOTH of the following sources:
+        # Get current date/time if not provided
+        if current_datetime is None:
+            current_datetime = datetime.now(pytz.UTC)
+        
+        # Ensure timezone-aware
+        if current_datetime.tzinfo is None:
+            current_datetime = pytz.UTC.localize(current_datetime)
+        
+        # Format in both UTC and EST/EDT
+        est_tz = pytz.timezone('America/New_York')
+        current_est = current_datetime.astimezone(est_tz)
+        current_utc = current_datetime.astimezone(pytz.UTC)
+        
+        date_time_info = f"""
+IMPORTANT: CURRENT DATE AND TIME
+- Current Date (EST/EDT): {current_est.strftime('%Y-%m-%d')}
+- Current Time (EST/EDT): {current_est.strftime('%H:%M:%S %Z')}
+- Current Date (UTC): {current_utc.strftime('%Y-%m-%d')}
+- Current Time (UTC): {current_utc.strftime('%H:%M:%S %Z')}
+
+You MUST use the date above ({current_est.strftime('%Y-%m-%d')}) as the current date for your analysis. Do NOT assume or hallucinate dates. All references to "today", "this date", or upcoming events should be based on {current_est.strftime('%Y-%m-%d')}.
+
+"""
+        
+        return f"""{date_time_info}As an expert forex trader with over 20 years of experience in forex trading, please analyze trading opportunities using BOTH of the following sources:
 
 1. INFORMATION FROM GOOGLE DRIVE (Forex tracker folder):
 The following data contains hourly reports on trending currencies retrieved from the Google Drive folder called "Forex tracker":
@@ -153,7 +227,7 @@ Please provide your analysis and recommendations in a clear format with:
 - Upcoming high-impact news events that might affect the trend
 """
 
-    def analyze_with_gemini(self, data_summary: str) -> Optional[str]:
+    def analyze_with_gemini(self, data_summary: str, current_datetime: datetime = None) -> Optional[str]:
         """Analyze using Gemini"""
         if not self.gemini_enabled:
             logger.warning("Gemini not enabled")
@@ -234,23 +308,23 @@ Please provide your analysis and recommendations in a clear format with:
                     error_msg += f" Sample: {available_model_names[:5]}"
                 raise Exception(error_msg)
             
-            prompt = self._get_gemini_prompt(data_summary)
+            prompt = self._get_gemini_prompt(data_summary, current_datetime)
             response = model.generate_content(prompt)
             result = response.text
-            logger.info(f"✅ Gemini analysis completed (model: {gemini_model})")
+            logger.info(f"✅ Gemini analysis completed (model: {working_model})")
             return result
         except Exception as e:
             logger.error(f"Error with Gemini analysis: {e}")
             return None
     
-    def analyze_with_chatgpt(self, data_summary: str) -> Optional[str]:
+    def analyze_with_chatgpt(self, data_summary: str, current_datetime: datetime = None) -> Optional[str]:
         """Analyze using ChatGPT API"""
         if not self.chatgpt_enabled:
             logger.warning("ChatGPT not enabled")
             return None
         
         try:
-            prompt = self._get_chatgpt_prompt(data_summary)
+            prompt = self._get_chatgpt_prompt(data_summary, current_datetime)
             response = self.chatgpt_client.chat.completions.create(
                 model=self.chatgpt_model,
                 messages=[
@@ -267,14 +341,14 @@ Please provide your analysis and recommendations in a clear format with:
             logger.error(f"Error with ChatGPT analysis: {e}")
             return None
     
-    def analyze_with_claude(self, data_summary: str) -> Optional[str]:
+    def analyze_with_claude(self, data_summary: str, current_datetime: datetime = None) -> Optional[str]:
         """Analyze using Claude"""
         if not self.claude_enabled:
             logger.warning("Claude not enabled")
             return None
         
         try:
-            prompt = self._get_claude_prompt(data_summary)
+            prompt = self._get_claude_prompt(data_summary, current_datetime)
             # Try primary model first, with fallback
             try:
                 message = self.claude_client.messages.create(
@@ -328,29 +402,41 @@ Please provide your analysis and recommendations in a clear format with:
             logger.error(f"Error with Claude analysis: {e}")
             return None
     
-    def analyze_all(self, data_summary: str) -> Dict[str, Optional[str]]:
+    def analyze_all(self, data_summary: str, current_datetime: datetime = None) -> Dict[str, Optional[str]]:
         """
         Run analysis on all enabled LLMs (ChatGPT, Gemini, Claude)
         
         Args:
             data_summary: Summary of forex data from Google Drive
+            current_datetime: Current datetime (defaults to now, in UTC)
             
         Returns:
             Dictionary with LLM names as keys and analysis results as values
         """
-        results = {}
+        # Get current datetime if not provided
+        if current_datetime is None:
+            current_datetime = datetime.now(pytz.UTC)
         
-        logger.info("Starting LLM analysis...")
+        # Ensure timezone-aware
+        if current_datetime.tzinfo is None:
+            current_datetime = pytz.UTC.localize(current_datetime)
+        
+        # Log current date/time for debugging
+        est_tz = pytz.timezone('America/New_York')
+        current_est = current_datetime.astimezone(est_tz)
+        logger.info(f"Starting LLM analysis at {current_est.strftime('%Y-%m-%d %H:%M:%S %Z')} (EST/EDT)")
+        
+        results = {}
         
         # Run analyses (ChatGPT, Gemini, Claude)
         logger.info("Running ChatGPT analysis...")
-        results['chatgpt'] = self.analyze_with_chatgpt(data_summary)
+        results['chatgpt'] = self.analyze_with_chatgpt(data_summary, current_datetime)
         
         logger.info("Running Gemini analysis...")
-        results['gemini'] = self.analyze_with_gemini(data_summary)
+        results['gemini'] = self.analyze_with_gemini(data_summary, current_datetime)
         
         logger.info("Running Claude analysis...")
-        results['claude'] = self.analyze_with_claude(data_summary)
+        results['claude'] = self.analyze_with_claude(data_summary, current_datetime)
         
         # Log results
         enabled_count = sum(1 for v in results.values() if v is not None)

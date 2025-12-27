@@ -102,3 +102,4 @@ python -c "import google.generativeai as genai; genai.configure(api_key='YOUR_KE
 python -c "from anthropic import Anthropic; client = Anthropic(api_key='YOUR_KEY'); print(client.messages.create(model='claude-3-5-sonnet-20241022', max_tokens=10, messages=[{'role':'user','content':'Hi'}]).content[0].text)"
 ```
 
+

@@ -43,10 +43,12 @@ class EmailSender:
             True if sent successfully
         """
         if not self.enabled:
-            logger.warning("Email not enabled")
+            logger.warning("Email not enabled - cannot send recommendations")
             return False
         
         try:
+            logger.info(f"Preparing to send email to {self.recipient_email}...")
+            
             msg = MIMEMultipart('alternative')
             msg['From'] = self.sender_email
             msg['To'] = self.recipient_email
@@ -54,21 +56,34 @@ class EmailSender:
             
             # Build email body
             body_text = self._create_email_body(llm_recommendations, gemini_final)
+            logger.debug(f"Email body length: {len(body_text)} characters")
+            
+            # Count available recommendations
+            available_count = sum(1 for v in llm_recommendations.values() if v)
+            logger.info(f"Email contains {available_count}/3 LLM recommendations + {'Gemini final' if gemini_final else 'no Gemini final'}")
             
             # Add body
             msg.attach(MIMEText(body_text, 'plain'))
             
             # Send email
+            logger.info(f"Connecting to SMTP server {self.smtp_server}:{self.smtp_port}...")
             with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
+                logger.debug("Starting TLS...")
                 server.starttls()
+                logger.debug("Logging in...")
                 server.login(self.sender_email, self.sender_password)
+                logger.debug("Sending message...")
                 server.send_message(msg)
             
-            logger.info(f"✅ Email sent to {self.recipient_email}")
+            logger.info(f"✅ Email sent successfully to {self.recipient_email}")
+            logger.info(f"   Subject: {msg['Subject']}")
             return True
             
+        except smtplib.SMTPException as e:
+            logger.error(f"SMTP error sending email: {e}", exc_info=True)
+            return False
         except Exception as e:
-            logger.error(f"Error sending email: {e}")
+            logger.error(f"Error sending email: {e}", exc_info=True)
             return False
     
     def _create_email_body(self, llm_recommendations: Dict[str, Optional[str]], 
