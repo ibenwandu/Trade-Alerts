@@ -1,6 +1,7 @@
 """Gemini synthesis of LLM recommendations"""
 
 import os
+import time
 from typing import Dict, Optional
 from datetime import datetime
 from dotenv import load_dotenv
@@ -174,10 +175,34 @@ Format your recommendations clearly with specific price levels that can be used 
             if not model:
                 raise Exception("No working Gemini model found after trying all options")
             
-            response = model.generate_content(prompt)
-            result = response.text
-            logger.info(f"✅ Gemini synthesis completed (model: {working_model})")
-            return result
+            # Retry logic for quota errors (429) with exponential backoff
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    response = model.generate_content(prompt)
+                    result = response.text
+                    logger.info(f"✅ Gemini synthesis completed (model: {working_model})")
+                    return result
+                except Exception as api_error:
+                    error_str = str(api_error)
+                    # Check if it's a quota/rate limit error (429)
+                    is_quota_error = '429' in error_str or 'quota' in error_str.lower() or 'rate limit' in error_str.lower()
+                    
+                    if is_quota_error and attempt < max_retries - 1:
+                        # Exponential backoff: 10s, 20s, 30s
+                        retry_delay = (attempt + 1) * 10
+                        logger.warning(f"⚠️ Gemini synthesis quota/rate limit error (attempt {attempt + 1}/{max_retries}). Retrying in {retry_delay} seconds...")
+                        time.sleep(retry_delay)
+                        continue
+                    elif is_quota_error:
+                        logger.error(f"❌ Gemini synthesis quota exceeded after {max_retries} attempts. Please check your billing account or wait for quota reset.")
+                        raise api_error
+                    else:
+                        # Not a quota error, re-raise immediately
+                        raise api_error
+            
+            # Should not reach here, but just in case
+            return None
             
         except Exception as e:
             logger.error(f"Error with Gemini synthesis: {e}")
